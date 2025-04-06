@@ -8,6 +8,7 @@ import json
 import audio
 
 MESSAGES_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'whatsapp-bridge', 'store', 'messages.db')
+WHATSAPP_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'whatsapp-bridge', 'store', 'whatsapp.db')
 WHATSAPP_API_BASE_URL = "http://localhost:8080/api"
 
 @dataclass
@@ -452,7 +453,7 @@ def list_chats(
 def search_contacts(query: str) -> List[Contact]:
     """Search contacts by name or phone number."""
     try:
-        conn = sqlite3.connect(MESSAGES_DB_PATH)
+        conn = sqlite3.connect()
         cursor = conn.cursor()
         
         # Split query into characters to support partial matching
@@ -460,13 +461,13 @@ def search_contacts(query: str) -> List[Contact]:
         
         cursor.execute("""
             SELECT DISTINCT 
-                jid,
-                name
-            FROM chats
+                our_jid,
+                full_name
+            FROM whatsmeow_contacts
             WHERE 
-                (LOWER(name) LIKE LOWER(?) OR LOWER(jid) LIKE LOWER(?))
-                AND jid NOT LIKE '%@g.us'
-            ORDER BY name, jid
+                (LOWER(full_name) LIKE LOWER(?) OR LOWER(our_jid) LIKE LOWER(?))
+                AND our_jid NOT LIKE '%@g.us'
+            ORDER BY full_name, our_jid
             LIMIT 50
         """, (search_pattern, search_pattern))
         
